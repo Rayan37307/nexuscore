@@ -1,0 +1,123 @@
+{
+  "name": "NexusCore — Inbound Interaction → Groq → Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nexuscore-ingest",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1a1a1a1-0000-4000-8000-000000000001",
+      "name": "Inbound Interaction Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-200, 0],
+      "webhookId": "nexuscore-ingest"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "version": 2 },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.header['x-nexuscore-secret'] }}",
+              "rightValue": "={{ $env.NEXUSCORE_WEBHOOK_SECRET }}",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a1a1a1a1-0000-4000-8000-000000000002",
+      "name": "Secret OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: 'unauthorized' } }}",
+        "options": { "responseCode": 401 }
+      },
+      "id": "a1a1a1a1-0000-4000-8000-000000000003",
+      "name": "Reject 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [200, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer {{ $env.GROQ_API_KEY }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'openai/gpt-oss-120b', temperature: 0.1, response_format: { type: 'json_object' }, messages: [ { role: 'system', content: $env.NEXUSCORE_EXTRACTION_PROMPT || 'You are NexusCore revenue intelligence. Extract company_name, contact_names, suggested_stage (lead|discovery|demo|proposal|negotiation|closed_won|closed_lost), win_probability (0-100), identified_budget, key_blockers[], next_steps[], executive_summary, follow_up_email{subject,body}. JSON only.' }, { role: 'user', content: 'Current stage: ' + ($json.body.currentStage || 'discovery') + '\\n\\n' + $json.body.content } ] }) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "a1a1a1a1-0000-4000-8000-000000000004",
+      "name": "Groq Extraction",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [200, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.NEXUSCORE_APP_URL }}/api/webhooks/ingest",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-nexuscore-secret", "value": "={{ $env.NEXUSCORE_WEBHOOK_SECRET }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: $('Inbound Interaction Webhook').item.json.body.content, type: $('Inbound Interaction Webhook').item.json.body.type || 'meeting_transcript', userEmail: $('Inbound Interaction Webhook').item.json.body.userEmail, dealId: $('Inbound Interaction Webhook').item.json.body.dealId, sourceIdentifier: $('Inbound Interaction Webhook').item.json.body.sourceIdentifier }) }}",
+        "options": { "timeout": 120000 }
+      },
+      "id": "a1a1a1a1-0000-4000-8000-000000000005",
+      "name": "NexusCore Ingest API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [400, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, dealTitle: $json.data.dealTitle, stage: $json.data.stage, winProbability: $json.data.winProbability } }}",
+        "options": {}
+      },
+      "id": "a1a1a1a1-0000-4000-8000-000000000006",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [600, 0]
+    }
+  ],
+  "connections": {
+    "Inbound Interaction Webhook": { "main": [[{ "node": "Secret OK?", "type": "main", "index": 0 }]] },
+    "Secret OK?": {
+      "main": [
+        [{ "node": "Groq Extraction", "type": "main", "index": 0 }],
+        [{ "node": "Reject 401", "type": "main", "index": 0 }]
+      ]
+    },
+    "Groq Extraction": { "main": [[{ "node": "NexusCore Ingest API", "type": "main", "index": 0 }]] },
+    "NexusCore Ingest API": { "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {},
+  "active": false
+}
