@@ -128,7 +128,9 @@ ON deal_embeddings
 USING hnsw (embedding vector_cosine_ops)
 WITH (m = 16, ef_construction = 64);
 
-CREATE UNIQUE INDEX IF NOT EXISTS deals_user_title_key ON deals (user_id, title);
+-- Drop legacy unique constraint that prevented multiple deals with the same title
+DROP INDEX IF EXISTS deals_user_title_key;
+CREATE INDEX IF NOT EXISTS deals_user_title_idx ON deals (user_id, title);
 CREATE INDEX IF NOT EXISTS deals_user_stage_idx ON deals (user_id, stage);
 CREATE INDEX IF NOT EXISTS interactions_deal_idx ON interactions (deal_id, occurred_at DESC);
 CREATE INDEX IF NOT EXISTS deal_embeddings_deal_idx ON deal_embeddings (deal_id);

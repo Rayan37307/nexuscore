@@ -127,34 +127,51 @@ Before any pilot, new vendors must be added to our approved vendor list and pass
       },
     ],
   },
-];
-
 for (const d of demoDeals) {
-  const { data: deal, error: dealErr } = await db
+  const dealPayload = {
+    user_id: userId,
+    company_id: companyIds[d.company],
+    title: d.title,
+    stage: d.stage,
+    amount: d.amount,
+    currency: "USD",
+    win_probability: d.win_probability,
+    ai_summary: d.ai_summary,
+    key_blockers: d.key_blockers,
+    identified_budget: d.identified_budget,
+    next_steps: d.next_steps,
+    follow_up_draft: d.follow_up_draft,
+    expected_close_date: d.expected_close_date,
+    last_interaction_date: new Date(Date.now() - (d.last_interaction === "2 days ago" ? 2 : 18) * 86400000).toISOString(),
+    stalled_warning: Boolean(d.stalled),
+  };
+
+  const { data: existingDeal } = await db
     .from("deals")
-    .upsert(
-      {
-        user_id: userId,
-        company_id: companyIds[d.company],
-        title: d.title,
-        stage: d.stage,
-        amount: d.amount,
-        currency: "USD",
-        win_probability: d.win_probability,
-        ai_summary: d.ai_summary,
-        key_blockers: d.key_blockers,
-        identified_budget: d.identified_budget,
-        next_steps: d.next_steps,
-        follow_up_draft: d.follow_up_draft,
-        expected_close_date: d.expected_close_date,
-        last_interaction_date: new Date(Date.now() - (d.last_interaction === "2 days ago" ? 2 : 18) * 86400000).toISOString(),
-        stalled_warning: Boolean(d.stalled),
-      },
-      { onConflict: "user_id,title" },
-    )
     .select("id")
-    .single();
-  if (dealErr) throw dealErr;
+    .eq("user_id", userId)
+    .eq("title", d.title)
+    .maybeSingle();
+
+  let deal;
+  if (existingDeal) {
+    const { data: updated, error: updateErr } = await db
+      .from("deals")
+      .update(dealPayload)
+      .eq("id", existingDeal.id)
+      .select("id")
+      .single();
+    if (updateErr) throw updateErr;
+    deal = updated;
+  } else {
+    const { data: inserted, error: insertErr } = await db
+      .from("deals")
+      .insert(dealPayload)
+      .select("id")
+      .single();
+    if (insertErr) throw insertErr;
+    deal = inserted;
+  }
 
   for (const ix of d.interactions) {
     const { data: interaction, error: ixErr } = await db

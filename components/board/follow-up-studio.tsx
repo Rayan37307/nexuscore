@@ -101,20 +101,20 @@ export function FollowUpStudio({ deal, onClose, onToast }: FollowUpStudioProps) 
 
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px]" onClick={onClose} />
-      <aside className="animate-drawer-in absolute inset-y-0 right-0 flex w-full max-w-xl flex-col border-l border-slate-200 bg-white shadow-2xl">
-        <header className="border-b border-slate-200 px-5 py-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity" onClick={onClose} />
+      <aside className="animate-drawer-in absolute inset-y-0 right-0 flex w-full max-w-xl flex-col border-l border-slate-800/90 bg-[#0b0f19] text-slate-100 shadow-2xl">
+        <header className="border-b border-slate-800/90 bg-slate-900/60 px-6 py-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <Badge className={cn(stageMeta.chip)}>{stageMeta.label}</Badge>
-                <span className="text-xs text-slate-400">
-                  Win probability {deal.win_probability}%
+                <span className="text-xs font-semibold text-slate-400">
+                  Win prob {deal.win_probability}%
                 </span>
               </div>
-              <h2 className="mt-1 truncate text-sm font-semibold text-slate-900">{deal.title}</h2>
-              <p className="text-xs text-slate-500">
-                {deal.company?.name ?? "—"} · {formatMoney(deal.amount, deal.currency)}
+              <h2 className="mt-1.5 truncate text-base font-bold tracking-tight text-white">{deal.title}</h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {deal.company?.name ?? "—"} · <span className="font-semibold text-slate-200">{formatMoney(deal.amount, deal.currency)}</span>
                 {deal.identified_budget ? ` · budget ${formatMoney(deal.identified_budget)}` : ""}
               </p>
             </div>
@@ -126,49 +126,51 @@ export function FollowUpStudio({ deal, onClose, onToast }: FollowUpStudioProps) 
           </div>
         </header>
 
-        <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
+        <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
           <section>
-            <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
               AI-synthesized briefing
             </h3>
-            <p className="rounded-xl bg-slate-50 p-3 text-sm leading-relaxed text-slate-700">
+            <div className="rounded-xl border border-indigo-500/25 bg-indigo-950/20 p-4 text-sm leading-relaxed text-slate-200 shadow-inner">
               {deal.ai_summary ?? "No AI summary yet — ingest a transcript or email for this deal."}
-            </p>
+            </div>
           </section>
 
           {contacts.length > 0 && (
             <section>
-              <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
                 Contacts
               </h3>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {contacts.map((c) => (
-                  <Badge key={c.email} className="bg-slate-50 text-slate-600 border-slate-200">
-                    {c.first_name} {c.last_name ?? ""} · {c.email}
+                  <Badge key={c.email} className="bg-slate-900 text-slate-300 border-slate-700/80 px-2.5 py-1">
+                    <span className="font-semibold text-slate-100">{c.first_name} {c.last_name ?? ""}</span>
+                    <span className="text-slate-500">·</span>
+                    <span className="text-slate-400">{c.email}</span>
                   </Badge>
-                    ))}
+                ))}
               </div>
             </section>
           )}
 
-          <section className="grid grid-cols-2 gap-4">
+          <section className="grid grid-cols-3 gap-3 rounded-xl border border-slate-800/80 bg-slate-900/40 p-3.5">
             <div className="space-y-1.5">
               <Label htmlFor="stage-select">Stage</Label>
               <select
                 id="stage-select"
                 value={stage}
                 onChange={(e) => setStage(e.target.value)}
-                className="flex h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm"
+                className="flex h-9 w-full rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
               >
                 {DEAL_STAGES.map((s) => (
-                  <option key={s.value} value={s.value}>
+                  <option key={s.value} value={s.value} className="bg-slate-900 text-slate-100">
                     {s.label}
                   </option>
                 ))}
               </select>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="probability-input">Win probability %</Label>
+              <Label htmlFor="probability-input">Win prob %</Label>
               <Input
                 id="probability-input"
                 type="number" min={0} max={100}
@@ -177,7 +179,7 @@ export function FollowUpStudio({ deal, onClose, onToast }: FollowUpStudioProps) 
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="amount-input">Amount</Label>
+              <Label htmlFor="amount-input">Amount ($)</Label>
               <Input
                 id="amount-input"
                 type="number" min={0}
@@ -188,20 +190,20 @@ export function FollowUpStudio({ deal, onClose, onToast }: FollowUpStudioProps) 
           </section>
 
           <section>
-            <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
               Identified risks & blockers
             </h3>
             {(deal.key_blockers ?? []).length === 0 ? (
-              <p className="text-sm text-slate-400">None identified.</p>
+              <p className="text-xs text-slate-500">No blockers detected.</p>
             ) : (
-              <ul className="space-y-1">
+              <ul className="space-y-1.5">
                 {(deal.key_blockers ?? []).map((b, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                    <svg viewBox="0 0 24 24" className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" fill="none" stroke="currentColor" strokeWidth="2">
+                  <li key={i} className="flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-950/20 px-3 py-2 text-xs text-amber-200">
+                    <svg viewBox="0 0 24 24" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-400" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                       <path d="M12 9v4" /><path d="M12 17h.01" />
                     </svg>
-                    {b}
+                    <span>{b}</span>
                   </li>
                 ))}
               </ul>
@@ -209,35 +211,34 @@ export function FollowUpStudio({ deal, onClose, onToast }: FollowUpStudioProps) 
           </section>
 
           <section>
-            <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
               Next steps
             </h3>
             {(deal.next_steps ?? []).length === 0 ? (
-              <p className="text-sm text-slate-400">None captured.</p>
+              <p className="text-xs text-slate-500">None captured yet.</p>
             ) : (
-              <ul className="space-y-1">
+              <ul className="space-y-1.5">
                 {(deal.next_steps ?? []).map((s, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                    <svg viewBox="0 0 24 24" className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" fill="none" stroke="currentColor" strokeWidth="2">
+                  <li key={i} className="flex items-start gap-2 rounded-lg border border-emerald-500/20 bg-emerald-950/20 px-3 py-2 text-xs text-emerald-200">
+                    <svg viewBox="0 0 24 24" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
                       <path d="M22 4L12 14.01l-3-3" />
                     </svg>
-                    {s}
+                    <span>{s}</span>
                   </li>
                 ))}
               </ul>
             )}
           </section>
 
-          <section className="rounded-xl border border-slate-200 p-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Ask the deal memory
+          <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Ask deal memory (pgvector)
             </h3>
-            <p className="mt-0.5 text-[11px] text-slate-500">
-              Semantic search over every transcript & email linked to this deal (pgvector cosine
-              similarity → Llama synthesis).
+            <p className="mt-0.5 text-[11px] text-slate-400">
+              Semantic vector search over all meeting transcripts & emails linked to this deal.
             </p>
-            <div className="mt-2 flex gap-2">
+            <div className="mt-2.5 flex gap-2">
               <Input
                 placeholder="What were the security concerns in the last demo?"
                 value={question}
@@ -253,22 +254,22 @@ export function FollowUpStudio({ deal, onClose, onToast }: FollowUpStudioProps) 
                 {asking ? "…" : "Ask"}
               </Button>
             </div>
-            {askError && <p className="mt-2 text-xs text-rose-600">{askError}</p>}
+            {askError && <p className="mt-2 text-xs text-rose-400">{askError}</p>}
             {askState && (
-              <div className="mt-3 space-y-2">
-                <p className="text-sm leading-relaxed text-slate-700">{askState.answer}</p>
+              <div className="mt-3 space-y-2 rounded-lg bg-slate-950/60 p-3 border border-slate-800">
+                <p className="text-xs leading-relaxed text-slate-200">{askState.answer}</p>
                 {askState.citations.length > 0 && (
-                  <details>
-                    <summary className="cursor-pointer text-[11px] text-slate-400">
-                      {askState.citations.length} cited memory chunks
+                  <details className="pt-1">
+                    <summary className="cursor-pointer text-[11px] font-medium text-indigo-400 hover:text-indigo-300">
+                      {askState.citations.length} cited memory segments
                     </summary>
-                    <div className="mt-1 space-y-1">
+                    <div className="mt-2 space-y-1.5">
                       {askState.citations.map((h, i) => (
-                        <p key={i} className="rounded bg-slate-50 p-2 text-[11px] text-slate-500">
-                          <span className="font-medium text-slate-400">[{i + 1}] · {h.similarity.toFixed(3)}</span>{" "}
+                        <p key={i} className="rounded-lg bg-slate-900/80 border border-slate-800 p-2 text-[11px] text-slate-400">
+                          <span className="font-semibold text-indigo-300">[{i + 1}] · score {h.similarity.toFixed(3)}:</span>{" "}
                           {h.content_chunk.slice(0, 220)}…
                         </p>
-                    ))}
+                      ))}
                     </div>
                   </details>
                 )}
@@ -277,16 +278,16 @@ export function FollowUpStudio({ deal, onClose, onToast }: FollowUpStudioProps) 
           </section>
 
           <section>
-            <div className="mb-1.5 flex items-center justify-between">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Follow-up email draft
               </h3>
               <button
                 type="button"
-                className="text-[11px] text-slate-400 underline"
+                className="text-[11px] text-slate-500 hover:text-slate-300 underline cursor-pointer"
                 onClick={() => setShowRaw((v) => !v)}
               >
-                {showRaw ? "hide" : "show"} stored format
+                {showRaw ? "hide" : "show"} raw
               </button>
             </div>
             <div className="space-y-2">
@@ -300,10 +301,15 @@ export function FollowUpStudio({ deal, onClose, onToast }: FollowUpStudioProps) 
                 placeholder="Email body"
                 value={draft.body}
                 onChange={(e) => setDraft((d) => ({ ...d, body: e.target.value }))}
+                className="font-mono text-xs leading-relaxed"
               />
             </div>
-            {showRaw && <pre className="mt-2 whitespace-pre-wrap rounded bg-slate-50 p-2 text-[11px] text-slate-500">{deal.follow_up_draft}</pre>}
-            <div className="mt-2 flex flex-wrap gap-2">
+            {showRaw && (
+              <pre className="mt-2 whitespace-pre-wrap rounded-xl border border-slate-800 bg-slate-950 p-3 text-[11px] text-slate-400 font-mono">
+                {deal.follow_up_draft}
+              </pre>
+            )}
+            <div className="mt-3 flex flex-wrap gap-2">
               <Button
                 variant="secondary"
                 onClick={saveDraft}
@@ -327,9 +333,9 @@ export function FollowUpStudio({ deal, onClose, onToast }: FollowUpStudioProps) 
           </section>
         </div>
 
-        <footer className="border-t border-slate-200 px-5 py-3">
+        <footer className="border-t border-slate-800/90 bg-slate-900/60 px-6 py-4">
           <Button
-            className="w-full"
+            className="w-full shadow-lg shadow-indigo-500/20"
             onClick={async () => {
               const res = await fetch("/api/deals/stage", {
                 method: "PATCH",
@@ -342,7 +348,7 @@ export function FollowUpStudio({ deal, onClose, onToast }: FollowUpStudioProps) 
                 }),
               });
               if (res.ok) {
-                onToast("Deal updated");
+                onToast("Deal updated ✓");
                 onClose();
               } else {
                 onToast("Update failed — check server logs");

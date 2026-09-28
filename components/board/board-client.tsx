@@ -162,7 +162,10 @@ export function BoardClient({ initialDeals, userId }: BoardClientProps) {
   }, [routerDeals]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#090d16] text-slate-100 relative selection:bg-indigo-500/30">
+      {/* Subtle ambient lighting */}
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.15),rgba(255,255,255,0))]" />
+
       <BoardHeader
         stats={stats}
         pendingAgentActions={pendingAgentActions}
@@ -189,19 +192,30 @@ export function BoardClient({ initialDeals, userId }: BoardClientProps) {
 
       <main className="mx-auto max-w-[1600px] px-4 pb-16 pt-6">
         {deals.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-            <h2 className="text-lg font-semibold text-slate-900">Your pipeline is empty</h2>
-            <p className="mx-auto mt-1 max-w-md text-sm text-slate-600">
+          <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 p-12 text-center shadow-xl backdrop-blur-sm">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-950/60 text-indigo-400 border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-bold tracking-tight text-white">Your pipeline is empty</h2>
+            <p className="mx-auto mt-2 max-w-md text-sm text-slate-400 leading-relaxed">
               Ingest your first meeting transcript or email thread — NexusCore creates the company,
-              deal, stage, and a follow-up draft automatically. Or run{" "}
-              <code className="rounded bg-slate-100 px-1 text-xs">npm run db:seed</code> for demo data.
+              deal, stage, and a follow-up draft automatically.
             </p>
-            <Button className="mt-4" onClick={() => setIngestOpen(true)}>
-              Ingest your first interaction
-            </Button>
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <Button onClick={() => setIngestOpen(true)} className="gap-2 shadow-lg shadow-indigo-500/20">
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Ingest interaction
+              </Button>
+            </div>
           </div>
         ) : (
-          <div className="grid grid-flow-col auto-cols-[minmax(230px,1fr)] gap-3 overflow-x-auto pb-4">
+          <div className="grid grid-flow-col auto-cols-[minmax(250px,1fr)] gap-3.5 overflow-x-auto pb-4">
             {DEAL_STAGES.map((stage) => (
               <DealColumn
                 key={stage.value}
@@ -251,8 +265,9 @@ export function BoardClient({ initialDeals, userId }: BoardClientProps) {
       />
 
       {toast && (
-        <div className="fixed bottom-4 left-1/2 z-[70] -translate-x-1/2 rounded-full bg-slate-900 px-4 py-2 text-sm text-white shadow-lg">
-          {toast}
+        <div className="fixed bottom-6 left-1/2 z-[70] -translate-x-1/2 flex items-center gap-2 rounded-full border border-slate-700/80 bg-slate-900/95 px-5 py-2.5 text-sm font-medium text-slate-100 shadow-2xl shadow-black/80 backdrop-blur-md animate-card-drop">
+          <span className="h-2 w-2 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
+          <span>{toast}</span>
         </div>
       )}
     </div>

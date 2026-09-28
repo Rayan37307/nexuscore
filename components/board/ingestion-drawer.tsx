@@ -38,9 +38,9 @@ function hostOf(url: string) {
 }
 
 function ingestChip(status: string) {
-  if (status === "ingested") return "bg-emerald-50 text-emerald-700 border-emerald-200";
-  if (status === "failed") return "bg-rose-50 text-rose-700 border-rose-200";
-  return "bg-slate-100 text-slate-600 border-slate-200";
+  if (status === "ingested") return "bg-emerald-950/60 text-emerald-300 border-emerald-500/40 shadow-[0_0_8px_rgba(52,211,153,0.15)]";
+  if (status === "failed") return "bg-rose-950/60 text-rose-300 border-rose-500/40 shadow-[0_0_8px_rgba(244,63,94,0.15)]";
+  return "bg-indigo-950/60 text-indigo-300 border-indigo-500/40";
 }
 
 export function IngestionDrawer({ open, onClose, deals, onIngested }: IngestionDrawerProps) {
@@ -227,13 +227,18 @@ export function IngestionDrawer({ open, onClose, deals, onIngested }: IngestionD
 
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px]" onClick={onClose} />
-      <aside className="animate-drawer-in absolute inset-y-0 right-0 flex w-full max-w-lg flex-col border-l border-slate-200 bg-white shadow-2xl">
-        <header className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity" onClick={onClose} />
+      <aside className="animate-drawer-in absolute inset-y-0 right-0 flex w-full max-w-lg flex-col border-l border-slate-800/90 bg-[#0b0f19] text-slate-100 shadow-2xl">
+        <header className="flex items-center justify-between border-b border-slate-800/90 bg-slate-900/60 px-6 py-4">
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">Ingest interaction</h2>
-            <p className="text-xs text-slate-500">
-              AI extracts company, contacts, stage, and a follow-up draft automatically.
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-bold tracking-tight text-white">Ingest interaction</h2>
+              <span className="rounded-full border border-indigo-500/30 bg-indigo-950/60 px-2 py-0.2 text-[10px] font-semibold text-indigo-300">
+                AI Engine
+              </span>
+            </div>
+            <p className="mt-0.5 text-xs text-slate-400">
+              Auto-extracts company, contacts, stage, objections, and follow-up draft.
             </p>
           </div>
           <Button variant="ghost" size="icon" aria-label="Close" onClick={onClose}>
@@ -243,13 +248,13 @@ export function IngestionDrawer({ open, onClose, deals, onIngested }: IngestionD
           </Button>
         </header>
 
-        <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 py-4">
-          <div className="grid grid-cols-4 gap-1 rounded-lg bg-slate-100 p-1">
+        <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 py-5">
+          <div className="grid grid-cols-4 gap-1 rounded-xl bg-slate-900/90 border border-slate-800 p-1">
             {(
               [
                 ["paste", "Paste text"],
-                ["file", "Transcript file"],
-                ["audio", "Audio file"],
+                ["file", "File"],
+                ["audio", "Audio"],
                 ["bot", "Meeting bot"],
               ] as [Mode, string][]
             ).map(([value, label]) => (
@@ -258,8 +263,10 @@ export function IngestionDrawer({ open, onClose, deals, onIngested }: IngestionD
                 type="button"
                 onClick={() => switchMode(value)}
                 className={cn(
-                  "rounded-md px-2 py-1.5 text-xs font-medium transition-colors",
-                  mode === value ? "bg-white shadow-sm text-slate-900" : "text-slate-500",
+                  "rounded-lg px-2 py-1.5 text-xs font-semibold transition-all cursor-pointer",
+                  mode === value
+                    ? "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-md shadow-indigo-950/60"
+                    : "text-slate-400 hover:text-slate-200",
                 )}
               >
                 {label}
@@ -272,52 +279,60 @@ export function IngestionDrawer({ open, onClose, deals, onIngested }: IngestionD
               <Label htmlFor="content">Transcript or email thread</Label>
               <Textarea
                 id="content"
-                rows={10}
+                rows={11}
                 placeholder={'Mara Chen: We\'re spending six hours a week per rep on CRM updates…\n\nFrom: igor@globex.com\nSubject: Re: demo follow-up…'}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="font-mono text-xs"
+                className="font-mono text-xs leading-relaxed"
               />
             </div>
           )}
 
           {mode === "file" && (
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Transcript file (.txt or .vtt)</Label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".txt,.vtt,text/plain"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-900 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-white"
-              />
-              {file && <p className="text-xs text-slate-500">{file.name} · {(file.size / 1024).toFixed(1)} KB</p>}
+              <div className="rounded-xl border border-dashed border-slate-700/80 bg-slate-900/40 p-5 text-center">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".txt,.vtt,text/plain"
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                  className="block w-full text-xs text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-indigo-500 file:cursor-pointer"
+                />
+                {file && (
+                  <p className="mt-2 text-xs font-medium text-indigo-300">
+                    {file.name} · {(file.size / 1024).toFixed(1)} KB
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
           {mode === "audio" && (
-            <div className="space-y-1.5">
-              <Label>Audio recording (Groq Whisper large-v3)</Label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={AUDIO_EXTENSIONS.join(",")}
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-900 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-white"
-              />
-              {file && (
-                <p className="text-xs text-slate-500">
-                  {file.name} · {(file.size / (1024 * 1024)).toFixed(1)} MB
-                  {file.size > 24 * 1024 * 1024 && " — large files may hit free-tier limits"}
-                </p>
-              )}
+            <div className="space-y-2">
+              <Label>Audio recording (Whisper large-v3)</Label>
+              <div className="rounded-xl border border-dashed border-slate-700/80 bg-slate-900/40 p-5 text-center">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={AUDIO_EXTENSIONS.join(",")}
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                  className="block w-full text-xs text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-indigo-500 file:cursor-pointer"
+                />
+                {file && (
+                  <p className="mt-2 text-xs font-medium text-indigo-300">
+                    {file.name} · {(file.size / (1024 * 1024)).toFixed(1)} MB
+                    {file.size > 24 * 1024 * 1024 && " — large files may hit limits"}
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
           {mode === "bot" && (
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               <div className="space-y-1.5">
-                <Label htmlFor="meeting-url">Meeting URL (Zoom, Google Meet, Teams)</Label>
+                <Label htmlFor="meeting-url">Meeting URL (Google Meet, Zoom, Teams)</Label>
                 <Input
                   id="meeting-url"
                   placeholder="https://meet.google.com/abc-defg-hij"
@@ -326,7 +341,7 @@ export function IngestionDrawer({ open, onClose, deals, onIngested }: IngestionD
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="join-at">Join at (optional — schedule for later)</Label>
+                <Label htmlFor="join-at">Schedule join time (optional)</Label>
                 <Input
                   id="join-at"
                   type="datetime-local"
@@ -334,32 +349,32 @@ export function IngestionDrawer({ open, onClose, deals, onIngested }: IngestionD
                   onChange={(e) => setJoinAt(e.target.value)}
                 />
               </div>
-              <Button type="button" onClick={launchBot} disabled={busy} className="w-full">
+              <Button type="button" onClick={launchBot} disabled={busy} className="w-full shadow-lg shadow-indigo-500/20">
                 {busy ? stage || "Launching…" : "Launch meeting bot"}
               </Button>
 
-              <div className="space-y-2 border-t border-slate-100 pt-3">
+              <div className="space-y-2.5 border-t border-slate-800/90 pt-3.5">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-slate-600">Recent bots</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Recent bots</p>
                   <Button type="button" variant="outline" size="sm" onClick={checkBots} disabled={syncingBots}>
                     {syncingBots ? "Checking…" : "Check & ingest"}
                   </Button>
                 </div>
                 {bots.length === 0 && (
-                  <p className="text-xs text-slate-400">No bots yet — launch one above or paste a transcript.</p>
+                  <p className="text-xs text-slate-500">No bots launched yet — paste a URL above to start.</p>
                 )}
-                <ul className="space-y-1.5">
+                <ul className="space-y-2">
                   {bots.map((b) => (
                     <li
                       key={b.id}
-                      className="flex items-center justify-between gap-2 rounded-lg border border-slate-100 px-2.5 py-1.5"
+                      className="flex items-center justify-between gap-2 rounded-xl border border-slate-800/80 bg-slate-900/60 p-3"
                     >
                       <div className="min-w-0">
-                        <p className="truncate text-xs font-medium text-slate-700">
-                          {b.bot_name || "Bot"} · {hostOf(b.meeting_url)}
+                        <p className="truncate text-xs font-semibold text-slate-200">
+                          {b.bot_name || "NexusCore Notetaker"} · {hostOf(b.meeting_url)}
                         </p>
                         <p
-                          className="truncate text-[11px] text-slate-400"
+                          className="truncate text-[11px] text-slate-400 mt-0.5"
                           title={b.error_message ?? undefined}
                         >
                           {b.status} · {b.ingest_status}
@@ -368,7 +383,7 @@ export function IngestionDrawer({ open, onClose, deals, onIngested }: IngestionD
                       </div>
                       <span
                         className={cn(
-                          "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                          "shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-bold",
                           ingestChip(b.ingest_status),
                         )}
                       >
@@ -377,10 +392,8 @@ export function IngestionDrawer({ open, onClose, deals, onIngested }: IngestionD
                     </li>
                   ))}
                 </ul>
-                <p className="text-[11px] text-slate-400">
-                  After the call, press “Check &amp; ingest” — the transcript runs the same pipeline
-                  (extract → stage → follow-up draft → deal memory). Attendee dashboard Settings must
-                  have your Zoom OAuth app + transcription provider configured.
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  After the call, click “Check &amp; ingest” — the transcript automatically flows into the pipeline and updates your deals.
                 </p>
               </div>
             </div>
@@ -389,20 +402,20 @@ export function IngestionDrawer({ open, onClose, deals, onIngested }: IngestionD
           {mode !== "bot" && (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="type">Type</Label>
+                <Label htmlFor="type">Interaction Type</Label>
                 <Select id="type" value={type} onChange={(e) => setType(e.target.value)}>
                   {INTERACTION_TYPES.map((t) => (
-                    <option key={t} value={t}>
+                    <option key={t} value={t} className="bg-slate-900 text-slate-100">
                       {t.replace(/_/g, " ")}
                     </option>
                   ))}
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="source">Source (optional)</Label>
+                <Label htmlFor="source">Source tag (optional)</Label>
                 <Input
                   id="source"
-                  placeholder="zoom-recording-0412 or email thread"
+                  placeholder="demo-0412 or email thread"
                   value={source}
                   onChange={(e) => setSource(e.target.value)}
                 />
@@ -411,22 +424,26 @@ export function IngestionDrawer({ open, onClose, deals, onIngested }: IngestionD
           )}
 
           <div className="space-y-1.5">
-            <Label htmlFor="deal">Attach to deal (optional — auto-matches by company)</Label>
+            <Label htmlFor="deal">Attach to deal (optional)</Label>
             <Select id="deal" value={dealId} onChange={(e) => setDealId(e.target.value)}>
-              <option value="">Auto (create or match by company name)</option>
+              <option value="" className="bg-slate-900 text-slate-100">Auto (create or match by company)</option>
               {openDeals.map((d) => (
-                <option key={d.id} value={d.id}>
+                <option key={d.id} value={d.id} className="bg-slate-900 text-slate-100">
                   {d.title}
                 </option>
               ))}
             </Select>
           </div>
 
-          {error && <p className="rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700">{error}</p>}
+          {error && (
+            <div className="rounded-xl bg-rose-950/40 border border-rose-800/50 p-3 text-xs text-rose-300">
+              {error}
+            </div>
+          )}
 
           {mode !== "bot" && (
-            <div className="mt-auto flex items-center gap-2 border-t border-slate-100 pt-4">
-              <Button type="submit" disabled={busy} className="flex-1">
+            <div className="mt-auto flex items-center gap-2 border-t border-slate-800/90 pt-4">
+              <Button type="submit" disabled={busy} className="flex-1 shadow-lg shadow-indigo-500/20">
                 {busy ? stage || "Extracting…" : "Extract & update pipeline"}
               </Button>
               <Button type="button" variant="outline" onClick={reset} disabled={busy}>
@@ -434,9 +451,8 @@ export function IngestionDrawer({ open, onClose, deals, onIngested }: IngestionD
               </Button>
             </div>
           )}
-          <p className="text-[11px] text-slate-400">
-            Typical extraction: 2–6 seconds on Groq free tier (30 req/min). Audio adds Whisper
-            transcription time (~10–15s for a 45-minute call).
+          <p className="text-[11px] text-slate-500">
+            Typical extraction takes ~2–4 seconds with Groq LLM. Audio uses Whisper large-v3.
           </p>
         </form>
       </aside>
